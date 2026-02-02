@@ -76,6 +76,8 @@ def build():
         # Transformers & tokenizers
         "--hidden-import=transformers",
         "--hidden-import=transformers.models",
+        "--hidden-import=transformers.models.llama",
+        "--hidden-import=transformers.models.llama.modeling_llama",
         "--hidden-import=transformers.generation",
         "--hidden-import=transformers.utils",
         "--hidden-import=tokenizers",
