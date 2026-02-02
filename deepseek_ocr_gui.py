@@ -18,7 +18,7 @@ import torch
 # ============================================
 def _setup_compatibility():
     """设置兼容性"""
-    # 修复 .cuda() 硬编码
+    # 修复 .cuda() 硬编码（Mac 和 Windows 没有 CUDA）
     if not hasattr(torch.Tensor, '_ocr_cuda_patched'):
         _original_cuda = torch.Tensor.cuda if hasattr(torch.Tensor, 'cuda') else None
 
@@ -29,9 +29,6 @@ def _setup_compatibility():
 
         torch.Tensor.cuda = _compat_cuda
         torch.Tensor._ocr_cuda_patched = True
-
-        # 禁用 MPS（避免兼容性问题）
-        torch.backends.mps.is_available = lambda: False
 
 
 _setup_compatibility()
@@ -71,7 +68,7 @@ class DeepSeekOCR:
                 return
 
             if progress_callback:
-                progress_callback("正在加载模型...")
+                progress_callback("Loading model...")
 
             try:
                 from transformers import AutoModel, AutoTokenizer
@@ -114,11 +111,11 @@ class DeepSeekOCR:
                 self._loaded = True
 
                 if progress_callback:
-                    progress_callback("模型加载完成！")
+                    progress_callback("Model loaded!")
 
             except Exception as e:
                 if progress_callback:
-                    progress_callback(f"模型加载失败: {e}")
+                    progress_callback(f"Model load failed: {e}")
                 raise
 
     def ocr(self, image_path: str, mode: str = "free",
@@ -128,7 +125,7 @@ class DeepSeekOCR:
             self.load(progress_callback)
 
         if progress_callback:
-            progress_callback("正在识别...")
+            progress_callback("Recognizing...")
 
         if mode == "markdown":
             prompt = "<image>\n<|grounding|>Convert the document to markdown. "
@@ -149,7 +146,7 @@ class DeepSeekOCR:
             )
 
             if progress_callback:
-                progress_callback("识别完成！")
+                progress_callback("Recognition complete!")
 
             return self._extract_text(result)
 
@@ -186,21 +183,21 @@ class OCRGUI:
         toolbar.pack(fill=tk.X)
 
         # 选择图像按钮
-        ttk.Button(toolbar, text="选择图像", command=self._select_image).pack(side=tk.LEFT, padx=5)
+        ttk.Button(toolbar, text="Select Image", command=self._select_image).pack(side=tk.LEFT, padx=5)
 
         # 模式选择
-        ttk.Label(toolbar, text="模式:").pack(side=tk.LEFT, padx=5)
+        ttk.Label(toolbar, text="Mode:").pack(side=tk.LEFT, padx=5)
         self.mode_var = tk.StringVar(value="free")
         mode_combo = ttk.Combobox(toolbar, textvariable=self.mode_var,
                                   values=["free", "markdown"], state="readonly", width=10)
         mode_combo.pack(side=tk.LEFT, padx=5)
 
         # 识别按钮
-        self.ocr_button = ttk.Button(toolbar, text="开始识别", command=self._start_ocr, state=tk.DISABLED)
+        self.ocr_button = ttk.Button(toolbar, text="Start OCR", command=self._start_ocr, state=tk.DISABLED)
         self.ocr_button.pack(side=tk.LEFT, padx=5)
 
         # 状态标签
-        self.status_label = ttk.Label(toolbar, text="正在加载模型...", foreground="orange")
+        self.status_label = ttk.Label(toolbar, text="Loading model...", foreground="orange")
         self.status_label.pack(side=tk.RIGHT, padx=5)
 
         # 主内容区
@@ -211,16 +208,16 @@ class OCRGUI:
         left_frame = ttk.Frame(content)
         content.add(left_frame, weight=1)
 
-        ttk.Label(left_frame, text="图像预览").pack(pady=5)
+        ttk.Label(left_frame, text="Image Preview").pack(pady=5)
 
-        self.image_label = ttk.Label(left_frame, text="请选择图像", anchor=tk.CENTER)
+        self.image_label = ttk.Label(left_frame, text="Please select an image", anchor=tk.CENTER)
         self.image_label.pack(fill=tk.BOTH, expand=True)
 
         # 右侧：识别结果
         right_frame = ttk.Frame(content)
         content.add(right_frame, weight=1)
 
-        ttk.Label(right_frame, text="识别结果").pack(pady=5)
+        ttk.Label(right_frame, text="OCR Result").pack(pady=5)
 
         self.result_text = scrolledtext.ScrolledText(right_frame, wrap=tk.WORD, font=("Courier", 10))
         self.result_text.pack(fill=tk.BOTH, expand=True)
@@ -229,9 +226,9 @@ class OCRGUI:
         bottom = ttk.Frame(self.root, padding=10)
         bottom.pack(fill=tk.X)
 
-        ttk.Button(bottom, text="复制结果", command=self._copy_result).pack(side=tk.LEFT, padx=5)
-        ttk.Button(bottom, text="保存结果", command=self._save_result).pack(side=tk.LEFT, padx=5)
-        ttk.Button(bottom, text="清空", command=self._clear).pack(side=tk.LEFT, padx=5)
+        ttk.Button(bottom, text="Copy", command=self._copy_result).pack(side=tk.LEFT, padx=5)
+        ttk.Button(bottom, text="Save", command=self._save_result).pack(side=tk.LEFT, padx=5)
+        ttk.Button(bottom, text="Clear", command=self._clear).pack(side=tk.LEFT, padx=5)
 
     def _load_model_async(self):
         """异步加载模型"""
@@ -240,7 +237,7 @@ class OCRGUI:
                 self.ocr = DeepSeekOCR()
                 self.ocr.load(lambda msg: self._update_status(msg, "orange" if "加载" in msg else "green"))
             except Exception as e:
-                self._update_status(f"模型加载失败: {e}", "red")
+                self._update_status(f"Model load failed: {e}", "red")
 
         threading.Thread(target=load_model, daemon=True).start()
 
@@ -248,7 +245,7 @@ class OCRGUI:
         """更新状态"""
         def update():
             self.status_label.config(text=message, foreground=color)
-            if "加载完成" in message:
+            if "loaded" in message.lower():
                 self.ocr_button.config(state=tk.NORMAL)
 
         self.root.after(0, update)
@@ -256,10 +253,10 @@ class OCRGUI:
     def _select_image(self):
         """选择图像"""
         path = filedialog.askopenfilename(
-            title="选择图像",
+            title="Select Image",
             filetypes=[
-                ("图像文件", "*.jpg *.jpeg *.png *.bmp *.gif *.tiff"),
-                ("所有文件", "*.*")
+                ("Image Files", "*.jpg *.jpeg *.png *.bmp *.gif *.tiff"),
+                ("All Files", "*.*")
             ]
         )
 
@@ -282,7 +279,7 @@ class OCRGUI:
             self.preview_image = photo
             self.image_label.config(image=photo, text="")
         except Exception as e:
-            self.image_label.config(text=f"预览失败: {e}", image="")
+            self.image_label.config(text=f"Preview failed: {e}", image="")
 
     def _start_ocr(self):
         """开始 OCR"""
@@ -291,7 +288,7 @@ class OCRGUI:
 
         self.ocr_button.config(state=tk.DISABLED)
         self.result_text.delete(1.0, tk.END)
-        self._update_status("正在识别...", "orange")
+        self._update_status("Recognizing...", "orange")
 
         def do_ocr():
             try:
@@ -303,15 +300,15 @@ class OCRGUI:
 
                 def show_result():
                     self.result_text.insert(1.0, result)
-                    self._update_status("识别完成！", "green")
+                    self._update_status("Recognition complete!", "green")
                     self.ocr_button.config(state=tk.NORMAL)
 
                 self.root.after(0, show_result)
 
             except Exception as e:
                 def show_error():
-                    self.result_text.insert(1.0, f"识别失败: {e}")
-                    self._update_status("识别失败", "red")
+                    self.result_text.insert(1.0, f"Recognition failed: {e}")
+                    self._update_status("Recognition failed", "red")
                     self.ocr_button.config(state=tk.NORMAL)
 
                 self.root.after(0, show_error)

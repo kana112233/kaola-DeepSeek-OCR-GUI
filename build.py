@@ -33,7 +33,8 @@ def build():
         "torch", "transformers", "pillow", "numpy",
         "addict", "einops", "easydict", "tiktoken",
         "fsspec", "huggingface-hub", "safetensors",
-        "tokenizers", "regex", "requests", "tqdm"
+        "tokenizers", "regex", "requests", "tqdm",
+        "matplotlib", "torchvision"
     ])
 
     print("Building...")
