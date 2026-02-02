@@ -15,7 +15,7 @@ jobs:
         os: [macos-latest, windows-latest]
 
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 120  # Nuitka takes longer
+    timeout-minutes: 60
 
     steps:
     - uses: actions/checkout@v4
