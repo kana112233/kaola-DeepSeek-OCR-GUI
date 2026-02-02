@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """
-PyInstaller build script for kaola-DeepSeek-OCR-GUI
+Nuitka build script for kaola-DeepSeek-OCR-GUI
+Nuitka compiles Python to C, then to binary - more reliable than PyInstaller
 """
 import os
 import sys
 import subprocess
+import shutil
 
 # Fix Windows encoding
 if sys.platform == "win32":
@@ -14,14 +16,14 @@ if sys.platform == "win32":
 
 
 def build():
-    """Build the executable"""
+    """Build the executable with Nuitka"""
 
-    # Install PyInstaller if needed
+    # Install Nuitka if needed
     try:
-        import PyInstaller
+        import nuitka
     except ImportError:
-        print("Installing PyInstaller...")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "pyinstaller"])
+        print("Installing Nuitka...")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "nuitka"])
 
     # Install all dependencies
     print("Installing dependencies...")
@@ -31,83 +33,25 @@ def build():
         "addict", "einops", "easydict", "tiktoken",
         "fsspec", "huggingface-hub", "safetensors",
         "tokenizers", "regex", "requests", "tqdm",
-        "matplotlib", "torchvision", "pyinstaller"
+        "matplotlib", "torchvision"
     ])
 
-    print("Building...")
+    print("Building with Nuitka...")
 
     name = "kaola-DeepSeek-OCR-GUI"
 
-    # Platform-specific settings
-    if sys.platform == "darwin":
-        cmd = [
-            "pyinstaller",
-            f"--name={name}",
-            "--onedir",
-            "--windowed",
-            "--noconfirm",
-        ]
-    else:
-        cmd = [
-            "pyinstaller",
-            f"--name={name}",
-            "--onefile",
-            "--windowed",
-            "--noconfirm",
-            # Exclude problematic modules
-            "--exclude-module=PIL._avif",
-            "--exclude-module=PIL._blp",
-            "--exclude-module=PIL._dcxxx",
-            "--exclude-module=PIL._webp",
-            # Exclude flash attention (not required for CPU)
-            "--exclude-module=flash_attn",
-            "--exclude-module=flash_attention",
-        ]
-
-    # Common parameters - use collect-submodules instead of collect-all
-    cmd += [
-        # Core modules
-        "--hidden-import=PIL._tkinter_finder",
-        "--hidden-import=tkinter",
-        "--hidden-import=tkinter.scrolledtext",
-        # PyTorch
-        "--hidden-import=torch",
-        "--hidden-import=torch.nn",
-        "--hidden-import=torch.nn.functional",
-        "--hidden-import=torchvision",
-        "--hidden-import=torchvision.transforms",
-        # Transformers - collect submodules to preserve structure
-        "--collect-submodules=transformers",
-        "--collect-submodules=transformers.models",
-        "--collect-submodules=transformers.models.llama",
-        "--hidden-import=transformers",
-        "--hidden-import=transformers.models",
-        "--hidden-import=transformers.models.llama",
-        "--hidden-import=transformers.models.llama.modeling_llama",
-        "--hidden-import=transformers.generation",
-        "--hidden-import=transformers.utils",
-        "--hidden-import=tokenizers",
-        "--hidden-import=huggingface_hub",
-        # Data processing
-        "--hidden-import=numpy",
-        "--hidden-import=PIL",
-        "--hidden-import=Image",
-        "--hidden-import=matplotlib",
-        "--hidden-import=matplotlib.pyplot",
-        # Other dependencies
-        "--hidden-import=addict",
-        "--hidden-import=einops",
-        "--hidden-import=easydict",
-        "--hidden-import=tiktoken",
-        "--hidden-import=fsspec",
-        "--hidden-import=safetensors",
-        "--hidden-import=regex",
-        "--hidden-import=requests",
-        "--hidden-import=tqdm",
-        # Collect torch and PIL
-        "--collect-all=torch",
-        "--collect-all=PIL",
-        # Main script
+    # Nuitka command - automatically detects all dependencies
+    cmd = [
+        sys.executable, "-m", "nuitka",
+        "--standalone",
+        "--onefile",
+        "--enable-plugin=tkinter",
+        "--disable-console",
+        "--output-dir=dist",
+        "--output-filename=" + ("kaola-DeepSeek-OCR-GUI.app" if sys.platform == "darwin" else "kaola-DeepSeek-OCR-GUI.exe"),
+        "--remove-output",  # Clean build files
+        # Include data directories
+        "--include-data-dir=../models/DeepSeek-OCR-2=models/DeepSeek-OCR-2",
         "deepseek_ocr_gui.py"
     ]
 
@@ -124,8 +68,6 @@ def build():
     elif sys.platform == "win32":
         print(f"\nWindows: dist\\{name}.exe")
         print(f"Run: dist\\{name}.exe")
-    else:
-        print(f"\nLinux: dist/{name}")
 
 
 if __name__ == "__main__":
