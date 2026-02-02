@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-DeepSeek-OCR-2 GUI 程序
-支持 Windows 和 Mac
+DeepSeek-OCR-2 GUI Application
+Supports Windows and Mac
 """
 import os
 import sys
@@ -235,7 +235,7 @@ class OCRGUI:
         def load_model():
             try:
                 self.ocr = DeepSeekOCR()
-                self.ocr.load(lambda msg: self._update_status(msg, "orange" if "加载" in msg else "green"))
+                self.ocr.load(lambda msg: self._update_status(msg, "orange" if "loading" in msg.lower() else "green"))
             except Exception as e:
                 self._update_status(f"Model load failed: {e}", "red")
 
@@ -321,7 +321,7 @@ class OCRGUI:
         if text:
             self.root.clipboard_clear()
             self.root.clipboard_append(text)
-            self._update_status("已复制到剪贴板", "green")
+            self._update_status("Copied to clipboard", "green")
 
     def _save_result(self):
         """保存结果"""
@@ -330,28 +330,28 @@ class OCRGUI:
             return
 
         path = filedialog.asksaveasfilename(
-            title="保存结果",
+            title="Save Result",
             defaultextension=".txt",
             filetypes=[
-                ("文本文件", "*.txt"),
+                ("Text Files", "*.txt"),
                 ("Markdown", "*.md"),
-                ("所有文件", "*.*")
+                ("All Files", "*.*")
             ]
         )
 
         if path:
             with open(path, 'w', encoding='utf-8') as f:
                 f.write(text)
-            self._update_status(f"已保存: {path}", "green")
+            self._update_status(f"Saved: {path}", "green")
 
     def _clear(self):
         """清空"""
         self.result_text.delete(1.0, tk.END)
-        self.image_label.config(image="", text="请选择图像")
+        self.image_label.config(image="", text="Please select an image")
         self.current_image_path = None
         self.preview_image = None
         self.ocr_button.config(state=tk.DISABLED)
-        self._update_status("已清空", "black")
+        self._update_status("Cleared", "black")
 
     def run(self):
         """运行主循环"""

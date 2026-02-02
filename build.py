@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """
-PyInstaller 打包脚本
-将 kaola-DeepSeek-OCR-GUI 打包成独立可执行程序
+PyInstaller build script for kaola-DeepSeek-OCR-GUI
 """
 import os
 import sys
 import subprocess
 
-# 修复 Windows 编码问题
+# Fix Windows encoding
 if sys.platform == "win32":
     import io
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
@@ -15,18 +14,16 @@ if sys.platform == "win32":
 
 
 def build():
-    """打包程序"""
+    """Build the executable"""
 
-    # 确保安装了 PyInstaller
+    # Install PyInstaller if needed
     try:
         import PyInstaller
     except ImportError:
         print("Installing PyInstaller...")
-        subprocess.check_call([
-            sys.executable, "-m", "pip", "install", "pyinstaller"
-        ])
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "pyinstaller"])
 
-    # 确保安装了所有依赖
+    # Install all dependencies
     print("Installing dependencies...")
     subprocess.check_call([
         sys.executable, "-m", "pip", "install",
@@ -34,16 +31,14 @@ def build():
         "addict", "einops", "easydict", "tiktoken",
         "fsspec", "huggingface-hub", "safetensors",
         "tokenizers", "regex", "requests", "tqdm",
-        "matplotlib", "torchvision"
+        "matplotlib", "torchvision", "pyinstaller"
     ])
 
     print("Building...")
 
-    # 确定输出名称和模式
     name = "kaola-DeepSeek-OCR-GUI"
 
-    # macOS 使用 onedir 模式（.app bundle）
-    # Windows 使用 onefile 模式（.exe）
+    # Platform-specific settings
     if sys.platform == "darwin":
         cmd = [
             "pyinstaller",
@@ -59,45 +54,58 @@ def build():
             "--onefile",
             "--windowed",
             "--noconfirm",
+            # Exclude problematic PIL plugins
             "--exclude-module=PIL._avif",
             "--exclude-module=PIL._blp",
             "--exclude-module=PIL._dcxxx",
+            "--exclude-module=PIL._webp",
         ]
 
-    # 添加通用参数
+    # Common parameters
     cmd += [
+        # Core modules
         "--hidden-import=PIL._tkinter_finder",
-        "--hidden-import=transformers",
-        "--hidden-import=torch",
-        "--hidden-import=numpy",
-        "--hidden-import=PIL",
         "--hidden-import=tkinter",
         "--hidden-import=tkinter.scrolledtext",
+        # PyTorch
+        "--hidden-import=torch",
+        "--hidden-import=torch.nn",
+        "--hidden-import=torch.nn.functional",
+        "--hidden-import=torchvision",
+        "--hidden-import=torchvision.transforms",
+        # Transformers & tokenizers
+        "--hidden-import=transformers",
+        "--hidden-import=transformers.models",
+        "--hidden-import=transformers.generation",
+        "--hidden-import=transformers.utils",
+        "--hidden-import=tokenizers",
+        "--hidden-import=huggingface_hub",
+        # Data processing
+        "--hidden-import=numpy",
+        "--hidden-import=PIL",
+        "--hidden-import=Image",
+        "--hidden-import=matplotlib",
+        "--hidden-import=matplotlib.pyplot",
+        # Other dependencies
         "--hidden-import=addict",
         "--hidden-import=einops",
         "--hidden-import=easydict",
         "--hidden-import=tiktoken",
         "--hidden-import=fsspec",
-        "--hidden-import=huggingface_hub",
         "--hidden-import=safetensors",
-        "--hidden-import=tokenizers",
         "--hidden-import=regex",
         "--hidden-import=requests",
         "--hidden-import=tqdm",
-        "--hidden-import=transformers.models",
-        "--hidden-import=transformers.generation",
-        "--hidden-import=transformers.utils",
-        "--hidden-import=torch.nn",
-        "--hidden-import=torch.nn.functional",
+        # Collect all for transformers (includes model files)
         "--collect-all=transformers",
         "--collect-all=torch",
         "--collect-all=PIL",
         "--collect-all=huggingface_hub",
+        # Main script
         "deepseek_ocr_gui.py"
     ]
 
     print(f"Running: {' '.join(cmd)}")
-
     subprocess.check_call(cmd)
 
     print("\n" + "=" * 60)
