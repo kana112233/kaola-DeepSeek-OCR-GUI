@@ -56,7 +56,6 @@ class DeepSeekOCR:
             os.path.join(os.path.dirname(__file__), "models", "DeepSeek-OCR-2"),
             os.path.expanduser("~/models/DeepSeek-OCR-2"),
             "./models/DeepSeek-OCR-2",
-            "/Users/xiohu/work/ai-tools/models/DeepSeek-OCR-2",
         ]
 
         for path in common_paths:
@@ -145,7 +144,8 @@ class DeepSeekOCR:
                 base_size=1024,
                 image_size=768,
                 crop_mode=True,
-                save_results=False
+                save_results=False,
+                eval_mode=True  # 关键：让 infer 返回结果
             )
 
             if progress_callback:
