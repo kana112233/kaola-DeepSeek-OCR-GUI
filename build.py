@@ -27,7 +27,7 @@ def build():
     print("Installing dependencies...")
     subprocess.check_call([
         sys.executable, "-m", "pip", "install",
-        "torch", "transformers", "pillow", "numpy",
+        "torch", "transformers==4.46.3", "pillow", "numpy",
         "addict", "einops", "easydict", "tiktoken",
         "fsspec", "huggingface-hub", "safetensors",
         "tokenizers", "regex", "requests", "tqdm",
@@ -54,14 +54,17 @@ def build():
             "--onefile",
             "--windowed",
             "--noconfirm",
-            # Exclude problematic PIL plugins
+            # Exclude problematic modules
             "--exclude-module=PIL._avif",
             "--exclude-module=PIL._blp",
             "--exclude-module=PIL._dcxxx",
             "--exclude-module=PIL._webp",
+            # Exclude flash attention (not required for CPU)
+            "--exclude-module=flash_attn",
+            "--exclude-module=flash_attention",
         ]
 
-    # Common parameters
+    # Common parameters - use collect-submodules instead of collect-all
     cmd += [
         # Core modules
         "--hidden-import=PIL._tkinter_finder",
@@ -73,7 +76,10 @@ def build():
         "--hidden-import=torch.nn.functional",
         "--hidden-import=torchvision",
         "--hidden-import=torchvision.transforms",
-        # Transformers & tokenizers
+        # Transformers - collect submodules to preserve structure
+        "--collect-submodules=transformers",
+        "--collect-submodules=transformers.models",
+        "--collect-submodules=transformers.models.llama",
         "--hidden-import=transformers",
         "--hidden-import=transformers.models",
         "--hidden-import=transformers.models.llama",
@@ -98,11 +104,9 @@ def build():
         "--hidden-import=regex",
         "--hidden-import=requests",
         "--hidden-import=tqdm",
-        # Collect all for transformers (includes model files)
-        "--collect-all=transformers",
+        # Collect torch and PIL
         "--collect-all=torch",
         "--collect-all=PIL",
-        "--collect-all=huggingface_hub",
         # Main script
         "deepseek_ocr_gui.py"
     ]
