@@ -45,13 +45,11 @@ def build():
         sys.executable, "-m", "nuitka",
         "--standalone",
         "--onefile",
-        "--enable-plugin=tkinter",
+        "--enable-plugin=tk-inter",
         "--disable-console",
         "--output-dir=dist",
         "--output-filename=" + ("kaola-DeepSeek-OCR-GUI.app" if sys.platform == "darwin" else "kaola-DeepSeek-OCR-GUI.exe"),
         "--remove-output",  # Clean build files
-        # Include data directories
-        "--include-data-dir=../models/DeepSeek-OCR-2=models/DeepSeek-OCR-2",
         "deepseek_ocr_gui.py"
     ]
 
