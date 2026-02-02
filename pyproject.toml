@@ -1,0 +1,27 @@
+[project]
+name = "comfyui-deepseek-ocr"
+description = "DeepSeek-OCR-2 integration for ComfyUI - Advanced OCR with document-to-markdown conversion"
+version = "0.0.1"
+license = { text = "MIT" }
+dependencies = [
+    "torch",
+    "numpy",
+    "transformers>=4.46.3",
+    "tokenizers>=0.20.3",
+    "pillow",
+    "einops",
+    "addict",
+    "easydict",
+]
+
+[project.urls]
+Repository = "https://github.com/kana112233/ComfyUI-DeepSeek-OCR"
+
+[tool.comfy]
+PublisherId = "kaola"
+DisplayName = "DeepSeek-OCR"
+Icon = ""
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
