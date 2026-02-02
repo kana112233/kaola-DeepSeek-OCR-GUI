@@ -1,0 +1,17 @@
+torch>=2.0
+transformers==4.46.3
+pillow
+numpy
+addict
+einops
+easydict
+tiktoken
+fsspec
+huggingface-hub
+safetensors
+tokenizers
+regex
+requests
+tqdm
+matplotlib
+torchvision
