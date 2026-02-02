@@ -33,7 +33,7 @@ def build():
         "addict", "einops", "easydict", "tiktoken",
         "fsspec", "huggingface-hub", "safetensors",
         "tokenizers", "regex", "requests", "tqdm",
-        "matplotlib", "torchvision"
+        "matplotlib", "torchvision", "accelerate>=0.26.0"
     ])
 
     print("Building with Nuitka...")
