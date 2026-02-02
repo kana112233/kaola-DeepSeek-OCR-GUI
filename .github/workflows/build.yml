@@ -27,10 +27,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install torch transformers==4.46.3 pillow numpy \
-          addict einops easydict tiktoken fsspec huggingface-hub \
-          safetensors tokenizers regex requests tqdm matplotlib torchvision \
-          accelerate>=0.26.0 pyinstaller
+        pip install torch transformers==4.46.3 pillow numpy addict einops easydict tiktoken fsspec huggingface-hub safetensors tokenizers regex requests tqdm matplotlib torchvision accelerate pyinstaller
 
     - name: Build with spec file
       run: |
