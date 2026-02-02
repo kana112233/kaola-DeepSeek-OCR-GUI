@@ -58,6 +58,9 @@ def build():
             "--onefile",
             "--windowed",
             "--noconfirm",
+            "--exclude-module=PIL._avif",
+            "--exclude-module=PIL._blp",
+            "--exclude-module=PIL._dcxxx",
         ]
 
     # 添加通用参数
