@@ -21,13 +21,13 @@ def build():
     try:
         import PyInstaller
     except ImportError:
-        print("正在安装 PyInstaller...")
+        print("Installing PyInstaller...")
         subprocess.check_call([
             sys.executable, "-m", "pip", "install", "pyinstaller"
         ])
 
     # 确保安装了所有依赖
-    print("检查依赖...")
+    print("Installing dependencies...")
     subprocess.check_call([
         sys.executable, "-m", "pip", "install",
         "torch", "transformers", "pillow", "numpy",
@@ -36,23 +36,32 @@ def build():
         "tokenizers", "regex", "requests", "tqdm"
     ])
 
-    print("开始打包...")
+    print("Building...")
 
-    # 确定输出名称
+    # 确定输出名称和模式
+    name = "kaola-DeepSeek-OCR-GUI"
+
+    # macOS 使用 onedir 模式（.app bundle）
+    # Windows 使用 onefile 模式（.exe）
     if sys.platform == "darwin":
-        name = "kaola-DeepSeek-OCR-GUI"
-    elif sys.platform == "win32":
-        name = "kaola-DeepSeek-OCR-GUI"
+        cmd = [
+            "pyinstaller",
+            f"--name={name}",
+            "--onedir",
+            "--windowed",
+            "--noconfirm",
+        ]
     else:
-        name = "kaola-DeepSeek-OCR-GUI"
+        cmd = [
+            "pyinstaller",
+            f"--name={name}",
+            "--onefile",
+            "--windowed",
+            "--noconfirm",
+        ]
 
-    # PyInstaller 命令
-    cmd = [
-        "pyinstaller",
-        f"--name={name}",
-        "--onefile",
-        "--windowed",
-        "--noconfirm",
+    # 添加通用参数
+    cmd += [
         "--hidden-import=PIL._tkinter_finder",
         "--hidden-import=transformers",
         "--hidden-import=torch",
@@ -83,23 +92,22 @@ def build():
         "deepseek_ocr_gui.py"
     ]
 
-    print(f"执行命令: {' '.join(cmd)}")
+    print(f"Running: {' '.join(cmd)}")
 
     subprocess.check_call(cmd)
 
     print("\n" + "=" * 60)
-    print("打包完成！")
+    print("Build complete!")
     print("=" * 60)
-    print(f"可执行文件位于: dist/{name}")
 
     if sys.platform == "darwin":
-        print(f"\nMac 版本: dist/{name}")
-        print(f"运行: ./dist/{name}")
+        print(f"\nmacOS: dist/{name}.app")
+        print(f"Run: open dist/{name}.app")
     elif sys.platform == "win32":
-        print(f"\nWindows 版本: dist\\{name}.exe")
-        print(f"运行: dist\\{name}.exe")
+        print(f"\nWindows: dist\\{name}.exe")
+        print(f"Run: dist\\{name}.exe")
     else:
-        print(f"\nLinux 版本: dist/{name}")
+        print(f"\nLinux: dist/{name}")
 
 
 if __name__ == "__main__":
