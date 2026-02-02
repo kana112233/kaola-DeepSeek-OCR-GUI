@@ -25,9 +25,16 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Build app
+    - name: Install dependencies
       run: |
-        python build.py
+        pip install torch transformers==4.46.3 pillow numpy \
+          addict einops easydict tiktoken fsspec huggingface-hub \
+          safetensors tokenizers regex requests tqdm matplotlib torchvision \
+          accelerate>=0.26.0 pyinstaller
+
+    - name: Build with spec file
+      run: |
+        pyinstaller kaola-DeepSeek-OCR-GUI.spec
 
     - name: Upload app (macOS)
       if: matrix.os == 'macos-latest'
